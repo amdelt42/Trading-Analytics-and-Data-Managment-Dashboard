@@ -1,3 +1,4 @@
+#pages\strategizer.py
 import dash
 
 from dash import html

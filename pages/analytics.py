@@ -1,3 +1,4 @@
+#pages\analytics.py
 import dash
 from dash import html, callback, Input, Output, State, dcc
 
