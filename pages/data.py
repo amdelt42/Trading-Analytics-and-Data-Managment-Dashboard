@@ -1,6 +1,6 @@
 import dash
 
-from dash import html, dcc, Input, Output, State, callback, no_update
+from dash import html, dcc, Input, Output, State, callback
 from pages.functions import insert_trade, delete_recent, top_recent, base64_to_bytes, no_updates
 
 import dash_bootstrap_components as dbc
