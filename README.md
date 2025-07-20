@@ -1,7 +1,16 @@
-# Trading Analytics and Data Managment Dashboard
+# ∇Dash - Trading Journal & Analytics  
+![Screenshot](assets/screenshot.png)  
 
-## Sample Section
+## Features  
+- Trade logging (SQLite backend)  
+- Real-time trading analytics  
+- Image uploads for trade receipts  
 
+## Run Locally  
+```bash
+pip install -r requirements.txt  
+python app.py
+```
 <!-- 
 # A first-level heading
 ## A second-level heading
