@@ -11,10 +11,22 @@
 pip install -r requirements.txt  
 python app.py
 ```
+
+## Next Features  
+- [ ] Polish analytics dashboard
+- [ ] Create settings page
+- [ ] Improve data validation logic
+- [ ] AI trade analysis (GPT-4)  
+- [ ] Strategy backtesting UI
+- [ ] Auto-read trade data from Sierra Chart 
+- [ ] Dark mode 
+- [ ] Deploy
+- [ ] Online Cloud Storage
+      
 <!-- 
 # A first-level heading
 ## A second-level heading
-### A third-level headin
+### A third-level heading
 
 
 ## This'll be a _Helpful_ Section About the Greek Letter Θ!
