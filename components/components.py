@@ -1,5 +1,5 @@
 import dash
-from dash import html
+from dash import html, dcc
 import dash_bootstrap_components as dbc
 
 def get_footer():
@@ -27,3 +27,5 @@ def get_navbar():
         sticky="top",
         className="navbar-custom",
     )
+
+update_flag_store = dcc.Store(id="update-flag", data=0)

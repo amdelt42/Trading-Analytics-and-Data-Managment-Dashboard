@@ -2,6 +2,7 @@ import dash
 
 from dash import html, dcc, Input, Output, State, callback
 from pages.functions import insert_trade, delete_recent, top_recent, base64_to_bytes, no_updates
+from components.components import update_flag_store
 
 import dash_bootstrap_components as dbc
 import pandas as pd
@@ -92,8 +93,7 @@ layout = html.Div([
                         "margin": "10px 0"
                     },
                 ),
-
-                dcc.Store(id='stored-image-data', data=None),
+           
             ]),
 
             dbc.Row([
@@ -118,6 +118,9 @@ layout = html.Div([
     #trade data table
     html.H2("Recent Trade Data", className="pt-4 pb-4 text-center"),
     html.Div(id="trade-data-table", style={"overflowX": "auto", "maxWidth": "100%"}),
+
+    dcc.Store(id='stored-image-data', data=None), 
+    update_flag_store,
 ], className="px-4 pb-4")
 
 @callback(
@@ -134,10 +137,11 @@ layout = html.Div([
     Output("input-exitT", "value"),
     Output("input-fees", "value"),
     Output("input-tags", "value"),
+    Output("update-flag", "data"),
     Input("submit-btn", "n_clicks"),
-    Input('upload-image', 'contents'),
     Input('clear-items-btn', 'n_clicks'),
     Input('delete-recent-btn', 'n_clicks'),
+    Input('upload-image', 'contents'),
     State("input-ticker", "value"),
     State("input-entry", "value"),
     State("input-exit", "value"),
@@ -151,48 +155,41 @@ layout = html.Div([
     State('upload-image', 'filename'),
     State('stored-image-data', 'data'),
     State("input-tags", "value"),
+    State("update-flag", "data"),
     prevent_initial_call=True
 )
 
 #unified callback to handle data validation and all buttons
-def unified_callback(submit_clicks, upload_contents, clear_clicks, delete_clicks, ticker, entry, exit, pl, risk, longshort, grade, entryT, exitT, fees, filename, stored_image, tags):
-    triggered_id = dash.callback_context.triggered_id
-    if triggered_id == 'delete-recent-btn':
+def unified_callback(submit, clear, delete, upload_contents, ticker, entry, exit, pl, risk, longshort, grade, entryT, exitT, fees, filename, stored_image, tags, current_flag):
+    trigger_id = dash.callback_context.triggered_id
+    if trigger_id == "delete-recent-btn":
         delete_recent()
-        return no_updates(13)
+        return *no_updates(13), (0 if current_flag is None else current_flag + 1)
 
-    if triggered_id == 'clear-items-btn':
-        return None, None, "", None, None, None, None, "Long", 1, None, None, None, ""
+    if trigger_id == "clear-items-btn":
+        return "", None, None, "", None, None, None, "Long", 1, None, None, None, "", (0 if current_flag is None else current_flag + 1)
 
-    if triggered_id == 'upload-image':
-        if not upload_contents:
-            return None, None, no_updates(11)
-        return (
-            dbc.Alert("Image uploaded successfully!", color="success", dismissable=True, fade=True),
-            {'contents': upload_contents, 'filename': filename}, no_updates(11)
-        )
-
-    if triggered_id == 'submit-btn':
+    if trigger_id == "submit-btn":
         required_fields = [ticker, entry, exit, pl, risk, longshort, grade, entryT, exitT, fees]
         if any(field in (None, "") for field in required_fields):
             return (
                 dbc.Alert("Please fill in all required fields.", color="danger", dismissable=True, fade=True),
-                no_updates(12)
+                *no_updates(13)
             )
         
         if not stored_image:
             return (
                 dbc.Alert("Please upload an image.", color="danger", dismissable=True, fade=True),
-                no_updates(12)
+                *no_updates(13)
             )
 
-        # Save image
+        #convert image to bytes
         if stored_image:
             img_bytes = base64_to_bytes(stored_image['contents'])
         else:
             img_bytes = None
 
-        # Save to CSV
+        #save to db
         insert_trade((
             dt.datetime.now().strftime('%Y-%m-%d'),
             ticker,
@@ -211,31 +208,52 @@ def unified_callback(submit_clicks, upload_contents, clear_clicks, delete_clicks
 
         return (
                 dbc.Alert("Trade submitted successfully!", color="success", dismissable=True, fade=True),
-                None, "", None, None, None, None, "Long", 1, None, None, None, ""
+                None, None, "", None, None, None, "Long", 1, None, None, None, "", (0 if current_flag is None else current_flag + 1)
         )
     
-    raise dash.exceptions.PreventUpdate
+    if trigger_id == "upload-image":
+        if not upload_contents:
+            return None, None, *no_updates(12)
+        return (
+            dbc.Alert("Image uploaded successfully!", color="success", dismissable=True, fade=True),
+            {'contents': upload_contents, 'filename': filename}, *no_updates(12)
+        )
 
+
+#update on update flag
 @callback(
     Output("trade-data-table", "children"),
-    Input("submit-btn", "n_clicks"),
-    Input("delete-recent-btn", "n_clicks"),
-    prevent_initial_call=False
+    Input("update-flag", "data"),
+    prevent_initial_call=False,
 )
 
-#updates the trade table (on submit/delete)
-def update_trade_table(submit_clicks, delete_clicks):
+def update(current_flag):
     df = top_recent()
     if 'Image' in df.columns:
         df = df.drop(columns=['Image'])
     df['Date'] = pd.to_datetime(df['Date'], dayfirst=False).dt.strftime('%Y-%m-%d')
-    table = dbc.Table.from_dataframe(
-        df,
-        striped=True,
+    
+    #self construct table iteratively by row for conditional formatting
+    header = [html.Th(col) for col in df.columns]
+    
+    body = []
+    for _, row in df.iterrows():
+        cells = []
+        for col in df.columns:
+            value = row[col]
+            if col == "P&L":
+                color = "green" if value > 0 else "red" if value < 0 else "black"
+                cells.append(html.Td(f"{value:.2f}", style={"color": color}))
+            else:
+                cells.append(html.Td(value))
+        body.append(html.Tr(cells))
+
+    table = dbc.Table(
+        [html.Thead(html.Tr(header)), html.Tbody(body)],
         bordered=True,
+        striped=True,
         hover=False,
-        responsive=False,
         className="table-custom"
     )
     return table
-   
+

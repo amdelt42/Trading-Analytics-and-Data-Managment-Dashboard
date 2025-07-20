@@ -1,0 +1,11 @@
+{
+    "sqltools.connections": [
+        {
+            "previewLimit": 50,
+            "driver": "DuckDB",
+            "database": "${workspaceFolder:Dashboard}/data/tradedata.duckdb",
+            "group": "DuckDB",
+            "name": "tradedata"
+        }
+    ]
+}
