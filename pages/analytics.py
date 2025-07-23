@@ -5,7 +5,7 @@ from dash import html, callback, Input, Output, State, dcc
 import dash_bootstrap_components as dbc
 
 from components.components import update_flag_store
-from pages.functions import get_total_pnl, get_win_rate
+from pages.functions import get_stats, eur, percent
 
 dash.register_page(__name__, path="/", order=1)
 
@@ -30,7 +30,7 @@ layout = html.Div([
        dbc.Col([
             dbc.Card([
                 dbc.CardBody([
-                    html.H4("1.48"),
+                    html.H4(id="avg-rr"),
                     html.P("Average RR")]),
                 ], style={"background-color": "#DBDBDB", "color": "black"}),
         ], width=2),
@@ -38,7 +38,7 @@ layout = html.Div([
         dbc.Col([
             dbc.Card([
                 dbc.CardBody([
-                    html.H4("2.62"),
+                    html.H4(id="profit-factor"),
                     html.P("Profit Factor")]),
                 ], style={"background-color": "#DBDBDB", "color": "black"}),
         ], width=2),
@@ -46,7 +46,7 @@ layout = html.Div([
         dbc.Col([
             dbc.Card([
                 dbc.CardBody([
-                    html.H4("442.65"),
+                    html.H4(id="avg-win"),
                     html.P("Average Win")]),
                 ], style={"background-color": "#DBDBDB", "color": "black"}),
         ], width=2),
@@ -54,7 +54,7 @@ layout = html.Div([
         dbc.Col([
             dbc.Card([
                 dbc.CardBody([
-                    html.H4("-336.72"),
+                    html.H4(id="avg-loss"),
                     html.P("Average Loss")]),
                 ], style={"background-color": "#DBDBDB", "color": "black"}),
         ], width=2),
@@ -71,11 +71,20 @@ layout = html.Div([
 @callback(
     Output("total-pnl", "children"),
     Output("win-rate", "children"),
+    Output("avg-rr", "children"),
+    Output("profit-factor", "children"),
+    Output("avg-win", "children"),
+    Output("avg-loss", "children"),
     Input("update-flag", "data"),
     prevent_initial_call=False,
 )
 
 def update(current_flag):
-    total_pnl = str(get_total_pnl())
-    win_rate = str(get_win_rate())+"%"
-    return total_pnl, win_rate
+    total_pnl, _, _, profit_factor, win_rate, avg_rr, avg_win, avg_loss = get_stats()
+    total_pnl = eur(total_pnl)
+    win_rate = percent(win_rate)
+    avg_win = eur(avg_win)
+    avg_loss = eur(avg_loss)
+    return total_pnl, win_rate, avg_rr, profit_factor, avg_win, avg_loss
+
+

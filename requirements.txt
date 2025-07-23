@@ -2,4 +2,4 @@ dash
 dash-bootstrap-components
 pandas
 plotly
-sqlite3
+
