@@ -2,7 +2,7 @@
 import dash
 
 from dash import html, dcc, Input, Output, State, callback
-from pages.functions import insert_trade, delete_recent, top_recent, base64_to_bytes, no_updates
+from pages.functions import insert_trade, delete_recent, top_recent, base64_to_bytes, no_updates, get_trade_result
 from components.components import update_flag_store
 
 import dash_bootstrap_components as dbc
@@ -47,7 +47,21 @@ layout = html.Div([
                     dbc.Input(id="input-fees", placeholder="Enter fees", type="number"),
 
                     dbc.Label("Tags", className="mt-3"),
-                    dbc.Input(id="input-tags", placeholder="Enter tags", type="text"),
+                    dcc.Dropdown(
+                        id="input-tags",
+                        options=[
+                            {"label": "Breakout", "value": "Breakout"},
+                            {"label": "Reversal", "value": "Reversal"},
+                            {"label": "News", "value": "News"},
+                            {"label": "Range", "value": "Range"},
+                            {"label": "Momentum", "value": "Momentum"},
+                            {"label": "Gap", "value": "Gap"},
+                            {"label": "Trend", "value": "Trend"},
+                        ],
+                        multi=True,
+                        placeholder="Select tags...",
+                        style={"width": "100%"}
+                    ),
 
                     dbc.Label("Type", className="mt-3"),
                     html.Div(
@@ -118,7 +132,7 @@ layout = html.Div([
 
     #trade data table
     html.H2("Recent Trade Data", className="pt-4 pb-4 text-center"),
-    html.Div(id="trade-data-table", style={"overflowX": "auto", "maxWidth": "100%"}),
+    html.Div(id="trade-data-table", style={"overflowX": "auto", "maxWidth": "100%", "maxHeight": "600px", "overflowY": "auto"}),
 
     dcc.Store(id='stored-image-data', data=None), 
     update_flag_store,
@@ -189,22 +203,24 @@ def unified_callback(submit, clear, delete, upload_contents, ticker, entry, exit
             img_bytes = base64_to_bytes(stored_image['contents'])
         else:
             img_bytes = None
-
+    
         #save to db
+        trade_result = get_trade_result(pl, risk)
         insert_trade((
-            dt.datetime.now().strftime('%Y-%m-%d'),
+            dt.date.today(),
             ticker,
             longshort,
             entry,
             exit,
-            entryT,
-            exitT,
+            dt.datetime.strptime(entryT, '%H:%M').time(),
+            dt.datetime.strptime(exitT, '%H:%M').time(),
             risk,
             pl,
             fees,
-            tags,
+            ", ".join(tags) if tags else "",
             grade,
             img_bytes,
+            trade_result
             ))
 
         return (

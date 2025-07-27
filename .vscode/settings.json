@@ -1,11 +1,13 @@
 {
     "sqltools.connections": [
         {
+            "name": "TradeDB",
+            "accessMode": "Read Only",
             "previewLimit": 50,
             "driver": "DuckDB",
-            "database": "${workspaceFolder:Dashboard}/data/tradedata.duckdb",
-            "group": "DuckDB",
-            "name": "tradedata"
+            "databaseFilePath": "C:\\Users\\minec\\Desktop\\Trades\\2025\\Dashboard\\data\\tradedata.duckdb",
+            "group": "DuckDB"
         }
-    ]
+    ],
+    "sqltools.useNodeRuntime": true
 }
