@@ -2,9 +2,11 @@
 ![Screenshot](assets/screenshot.png)  
 
 ## Features  
-- Trade logging (SQLite backend)  
+- Trade logging (DuckDB backend)  
 - Real-time trading analytics  
 - Image uploads for trade receipts  
+- Strategy filtering
+- Interactive data management
 
 ## Run Locally  
 ```bash

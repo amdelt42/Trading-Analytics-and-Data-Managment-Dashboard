@@ -132,7 +132,6 @@ def get_stats(period: Optional[str] = None, tags: Optional[Tuple[str, ...]] = ()
     df = df.fillna(0)
     return tuple(round(df[col].iloc[0], 2) for col in df.columns)
 
-
 @lru_cache(maxsize=16)
 def get_cum_pnl(period: Optional[str] = None, tags: Optional[Tuple[str, ...]] = ()) -> dcc.Graph:
     tags = list(tags)
@@ -170,7 +169,6 @@ def build_filters(period: str, tags: list[str]) -> str:
         return period_filter + " AND " + tag_filter.replace("WHERE ", "")
     return period_filter or tag_filter
 
-
 def get_period_filter(period: str) -> str:
     if period == "monthly":
         return "WHERE strftime('%Y-%m', Date) = strftime('%Y-%m', CURRENT_DATE)"
@@ -180,18 +178,17 @@ def get_period_filter(period: str) -> str:
         return "WHERE DATE(Date) = CURRENT_DATE"
     return ""
 
-def get_tag_filter(selected_tags: list[str]) -> str:
-    if not selected_tags:
+def get_tag_filter(tags: list[str]) -> str:
+    if not tags:
         return ""
     
     tag_conditions = [
-        f'"Tags" ILIKE \'%{tag.replace("'", "''")}%\'' for tag in selected_tags
+        f'"Tags" ILIKE \'%{tag.replace("'", "''")}%\'' for tag in tags
     ]
     
     return "WHERE " + " OR ".join(tag_conditions)
 
-
-#simple handy display functions
+#simple handy functions
 def get_trade_result(pl: float, risk: float, break_even:float=0.1): #10% risk break-even
     if pl > break_even * risk:
         return "Win"
